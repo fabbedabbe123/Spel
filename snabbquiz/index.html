@@ -1,0 +1,399 @@
+<!doctype html>
+<html lang="sv">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Snabbquiz</title>
+  <style>
+    :root {
+      --bg: #12102a;
+      --bg2: #1d1a40;
+      --card: #262257;
+      --line: #3a3580;
+      --text: #f3f1ff;
+      --muted: #a9a3d9;
+      --accent: #ffcf3f;
+      --a0: #ef476f;
+      --a1: #3a86ff;
+      --a2: #f4a100;
+      --a3: #06b67a;
+      --good: #2ee59d;
+      --bad: #ff5d73;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; height: 100%; }
+    body {
+      background: radial-gradient(ellipse at top, var(--bg2), var(--bg) 70%) fixed;
+      color: var(--text);
+      font-family: "Segoe UI", system-ui, sans-serif;
+      user-select: none;
+      overflow-x: hidden;
+    }
+    .screen { display: none; min-height: 100vh; padding: 24px 16px; flex-direction: column; align-items: center; }
+    .screen.active { display: flex; }
+    .wrap { width: min(820px, 100%); display: flex; flex-direction: column; gap: 14px; }
+    .narrow { width: min(440px, 100%); }
+    h1.logo {
+      font-size: clamp(44px, 9vw, 84px);
+      margin: 6vh 0 18px;
+      text-align: center;
+      letter-spacing: -1px;
+      line-height: 1;
+    }
+    h1.logo span { color: var(--accent); }
+    h2 { margin: 0; font-size: 28px; text-align: center; }
+    label { font-size: 14px; color: var(--muted); display: flex; flex-direction: column; gap: 6px; }
+    input, textarea {
+      font: inherit;
+      font-size: 16px;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 2px solid var(--line);
+      background: var(--bg);
+      color: var(--text);
+      outline: none;
+      min-width: 0;
+      user-select: text;
+    }
+    input:focus, textarea:focus { border-color: var(--accent); }
+    textarea { width: 100%; min-height: 260px; resize: vertical; font-size: 14px; font-family: Consolas, monospace; }
+    button {
+      font: inherit;
+      font-weight: 700;
+      font-size: 17px;
+      padding: 14px 18px;
+      border-radius: 12px;
+      border: none;
+      cursor: pointer;
+      color: #fff;
+      background: var(--card);
+      box-shadow: 0 4px 0 #0006;
+      transition: transform 0.08s, filter 0.15s;
+    }
+    button:hover { filter: brightness(1.12); }
+    button:active { transform: translateY(3px); box-shadow: 0 1px 0 #0006; }
+    button:disabled { opacity: 0.45; cursor: default; filter: none; }
+    .primary { background: var(--accent); color: #2a2100; }
+    .green { background: var(--a3); }
+    .blue { background: var(--a1); }
+    .ghost { background: transparent; box-shadow: none; color: var(--muted); font-weight: 600; font-size: 15px; }
+    .ghost:hover { color: var(--text); }
+    .row { display: flex; gap: 10px; }
+    .row > input { flex: 1; }
+    .sep { text-align: center; color: var(--muted); font-size: 13px; margin-top: 8px; }
+    .hint { text-align: center; color: var(--muted); font-size: 14px; margin: 0; }
+
+    .card { background: var(--card); border-radius: 18px; padding: 18px; }
+    .addr { font-size: 30px; font-weight: 800; color: var(--accent); text-align: center; letter-spacing: 1px; }
+    .players { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+    .chip {
+      padding: 8px 14px;
+      border-radius: 999px;
+      font-weight: 700;
+      background: var(--bg);
+      border: 2px solid var(--c, var(--line));
+      color: var(--c, var(--text));
+      display: inline-flex; gap: 6px; align-items: center;
+    }
+    .cats { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+    .cats button, .counts button { font-size: 15px; padding: 12px 8px; background: var(--bg); border: 2px solid var(--line); box-shadow: none; }
+    .cats button.on, .counts button.on { border-color: var(--accent); color: var(--accent); }
+    .counts { display: flex; gap: 8px; }
+    .counts button { flex: 1; }
+    .section-title { font-size: 13px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--muted); margin: 0 0 8px; }
+
+    /* Fråga */
+    .topbar { display: flex; justify-content: space-between; align-items: center; color: var(--muted); font-weight: 700; }
+    .timer { height: 10px; border-radius: 99px; background: var(--bg); overflow: hidden; }
+    .timer > div { height: 100%; background: var(--accent); width: 100%; transition: background 0.3s; }
+    .timer.low > div { background: var(--bad); }
+    .qtext {
+      background: #fff;
+      color: #1b1840;
+      border-radius: 18px;
+      padding: 28px 22px;
+      font-size: clamp(22px, 3.6vw, 34px);
+      font-weight: 800;
+      text-align: center;
+      min-height: 130px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .answers { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    @media (max-width: 560px) { .answers { grid-template-columns: 1fr; } }
+    .ans {
+      min-height: 92px;
+      font-size: clamp(17px, 2.4vw, 22px);
+      text-align: left;
+      display: flex; align-items: center; gap: 14px;
+      padding: 14px 18px;
+      position: relative;
+    }
+    .ans .shape { font-size: 26px; width: 30px; text-align: center; flex: none; }
+    .ans .key { position: absolute; top: 6px; right: 10px; font-size: 12px; opacity: 0.6; }
+    .ans .who { display: block; font-size: 13px; font-weight: 600; opacity: 0.9; margin-top: 4px; }
+    .a0 { background: var(--a0); } .a1 { background: var(--a1); } .a2 { background: var(--a2); } .a3 { background: var(--a3); }
+    .ans.dim { opacity: 0.28; }
+    .ans.picked { outline: 4px solid #fff; outline-offset: 3px; }
+    .ans.correct { outline: 4px solid var(--good); outline-offset: 3px; opacity: 1; }
+    .status { text-align: center; font-size: 18px; font-weight: 700; min-height: 28px; }
+    .verdict { text-align: center; font-size: 34px; font-weight: 900; }
+    .verdict.good { color: var(--good); }
+    .verdict.bad { color: var(--bad); }
+
+    /* Poänglista */
+    .board { display: flex; flex-direction: column; gap: 6px; }
+    .board .line {
+      display: flex; align-items: center; gap: 10px;
+      background: var(--bg); border-radius: 12px; padding: 10px 14px;
+      border-left: 6px solid var(--c);
+      font-weight: 700;
+    }
+    .board .line.me { background: #ffffff14; }
+    .board .pos { width: 26px; color: var(--muted); }
+    .board .name { flex: 1; }
+    .board .gain { color: var(--good); font-size: 14px; }
+    .board .pts { min-width: 70px; text-align: right; }
+
+    .podium { display: flex; align-items: flex-end; justify-content: center; gap: 10px; margin: 20px 0 6px; }
+    .podium .step { width: 130px; text-align: center; font-weight: 800; }
+    .podium .block { border-radius: 12px 12px 0 0; display: flex; align-items: flex-start; justify-content: center; padding-top: 10px; font-size: 34px; }
+    .podium .pname { margin-bottom: 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    .board .detail { color: var(--muted); font-size: 14px; font-weight: 600; }
+
+    /* Spelväljare */
+    .games { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 8px; }
+    .games button {
+      background: var(--bg); border: 2px solid var(--line); box-shadow: none;
+      text-align: left; padding: 12px; display: flex; flex-direction: column; gap: 4px;
+    }
+    .games button.on { border-color: var(--accent); }
+    .games .gicon { font-size: 26px; }
+    .games .gname { font-size: 16px; }
+    .games .gdesc { font-size: 12px; font-weight: 600; color: var(--muted); }
+    .games button.on .gname { color: var(--accent); }
+    .subtitle { text-align: center; color: var(--muted); margin: -8px 0 18px; font-size: 18px; }
+
+    /* Spelytan */
+    #stage { display: flex; flex-direction: column; gap: 12px; }
+    .bigbox {
+      border-radius: 18px;
+      min-height: 300px;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
+      font-size: clamp(26px, 5vw, 44px); font-weight: 900; text-align: center;
+      cursor: pointer; padding: 20px;
+      transition: background 0.1s;
+    }
+    .bigbox small { font-size: 16px; font-weight: 600; opacity: 0.85; }
+    .bigbox.wait { background: var(--a0); }
+    .bigbox.go { background: var(--a3); }
+    .bigbox.neutral { background: var(--card); cursor: default; }
+    .bigbox.clicker { background: var(--a1); user-select: none; }
+    .bigbox.clicker:active { filter: brightness(1.2); }
+    .numrow { display: flex; gap: 10px; }
+    .numrow input { flex: 1; font-size: 26px; font-weight: 800; text-align: center; padding: 16px; }
+    .numrow button { font-size: 20px; }
+    .stroop { font-size: clamp(54px, 12vw, 110px); font-weight: 900; letter-spacing: 3px; }
+    .colorbtn { min-height: 74px; font-size: 22px; background: var(--card); border: 3px solid var(--line); }
+    .typetarget { font-size: clamp(24px, 4vw, 36px); }
+    .typetarget .ok { color: var(--good); }
+    .typetarget .bad { color: var(--bad); text-decoration: underline; }
+    .qtext.emoji { font-size: clamp(56px, 10vw, 90px); letter-spacing: 8px; }
+    .qtext.cryptic { font-size: clamp(20px, 3vw, 28px); line-height: 1.35; }
+    .qtext svg.flag { width: min(300px, 70vw); height: auto; }
+
+    /* Flaggor */
+    svg.flag { display: block; border-radius: 6px; box-shadow: 0 0 0 2px #0004, 0 6px 18px #0006; }
+    .flagarea { display: flex; gap: 18px; justify-content: center; flex-wrap: wrap; }
+    .flagbox { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+    .flagbox svg.flag { width: min(360px, 86vw); height: auto; }
+    .flaglabel { color: var(--muted); font-weight: 700; font-size: 14px; }
+    /* Färghjul */
+    .picker { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; justify-content: center; }
+    .wheel { width: 220px; height: 220px; border-radius: 50%; cursor: crosshair; touch-action: none; }
+    .pickside { display: flex; flex-direction: column; gap: 8px; width: 170px; }
+    .bright {
+      -webkit-appearance: none; appearance: none; width: 100%; height: 18px;
+      border-radius: 99px; border: 2px solid var(--line); padding: 0; cursor: pointer;
+    }
+    .bright::-webkit-slider-thumb {
+      -webkit-appearance: none; width: 22px; height: 22px; border-radius: 50%;
+      background: #fff; border: 3px solid #1b1840; box-shadow: 0 1px 4px #0008;
+    }
+    .preview { height: 44px; border-radius: 10px; border: 2px solid #fff4; }
+    .hexlabel { font-family: Consolas, monospace; font-size: 14px; color: var(--muted); }
+    .partlist { display: flex; gap: 6px; flex-wrap: wrap; }
+    .partchip {
+      width: 38px; height: 38px; padding: 0; border-radius: 10px; box-shadow: none;
+      background: var(--sw); border: 3px solid #fff3; color: #fff; text-shadow: 0 0 3px #000, 0 0 3px #000; font-size: 15px;
+    }
+    .partchip.on { border-color: var(--accent); }
+    .compare { display: flex; flex-direction: column; gap: 6px; align-items: center; }
+    .cmprow { display: flex; gap: 8px; align-items: center; font-weight: 700; font-size: 14px; }
+    .cmpsw { width: 26px; height: 26px; border-radius: 6px; border: 2px solid #fff4; }
+
+    /* Size it up */
+    .sizescene { display: flex; justify-content: center; gap: 30px; align-items: flex-end; background: var(--bg); border-radius: 18px; padding: 16px; }
+    .sizeobj { display: flex; flex-direction: column; align-items: center; gap: 8px; min-width: 140px; }
+    .sizestage { height: 190px; display: flex; align-items: flex-end; justify-content: center; border-bottom: 3px solid var(--line); width: 100%; }
+    .sizeemoji { line-height: 1; transition: font-size 0.08s; }
+    .sizelabel { font-size: 24px; }
+    .sizeslider { width: 100%; accent-color: var(--accent); height: 28px; }
+
+    /* Wordle */
+    .wgrid { display: flex; flex-direction: column; gap: 6px; align-items: center; }
+    .wrow { display: flex; gap: 6px; }
+    .wtile {
+      width: 54px; height: 54px; border: 2px solid var(--line); border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 28px; font-weight: 900; text-transform: uppercase;
+    }
+    .wtile.filled { border-color: var(--muted); }
+    @keyframes flip { 0% { transform: rotateX(0); } 50% { transform: rotateX(90deg); } 100% { transform: rotateX(0); } }
+    .wtile.wg, .wtile.wy, .wtile.wx { animation: flip 0.45s both; border-color: transparent; }
+    .wtile.wg { background: #2fa84f; }
+    .wtile.wy { background: #d4a514; }
+    .wtile.wx { background: #4a4672; }
+    .keyboard { display: flex; flex-direction: column; gap: 6px; align-items: center; }
+    .keyboard.locked { opacity: 0.4; pointer-events: none; }
+    .krow { display: flex; gap: 5px; }
+    .key { min-width: 36px; padding: 12px 6px; font-size: 15px; background: #6d68a8; box-shadow: 0 3px 0 #0006; }
+    .key.wide { min-width: 62px; font-size: 13px; }
+    .key.kg { background: #2fa84f; }
+    .key.ky { background: #d4a514; }
+    .key.kx { background: #2d2a52; color: #8c87c0; }
+    @media (max-width: 520px) { .key { min-width: 26px; padding: 10px 3px; } .wtile { width: 46px; height: 46px; } }
+
+    /* Ordspel */
+    .tiles { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
+    .tile {
+      width: 46px; height: 54px; border-radius: 10px;
+      background: #fff; color: #1b1840;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 26px; font-weight: 900;
+    }
+    .tile.slot { background: var(--bg); color: var(--text); border: 2px solid var(--line); }
+    .tile.slot.given { border-color: var(--accent); color: var(--accent); }
+    @keyframes shake { 0%, 100% { transform: none; } 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }
+    .shake { animation: shake 0.3s; border-color: var(--bad) !important; }
+    #error .card { text-align: center; }
+    .err { color: var(--bad); font-size: 22px; font-weight: 800; }
+    #mute { position: fixed; bottom: 10px; right: 12px; z-index: 5; }
+  </style>
+</head>
+<body>
+  <!-- Meny -->
+  <section class="screen active" id="menu">
+    <h1 class="logo">Snabb<span>quiz</span></h1>
+    <p class="subtitle">Frågesport och minispel – utmana dina kompisar!</p>
+    <div class="wrap narrow">
+      <label>Ditt namn
+        <input id="name" maxlength="12" placeholder="Skriv ditt namn">
+      </label>
+      <button class="primary" id="btnHost">Skapa spel för kompisar</button>
+      <button class="blue" id="btnSolo">Spela ensam</button>
+      <div class="sep">— eller gå med i en kompis spel —</div>
+      <div class="row">
+        <input id="addr" placeholder="Värdens IP, t.ex. 192.168.1.23">
+        <button class="green" id="btnJoin">Gå med</button>
+      </div>
+      <button class="ghost" id="btnEdit">✎ Skriv egna frågor</button>
+    </div>
+  </section>
+
+  <!-- Egna frågor -->
+  <section class="screen" id="editor">
+    <div class="wrap">
+      <h2>Egna frågor</h2>
+      <p class="hint">En fråga per rad: <b>Fråga | Rätt svar | Fel svar | Fel svar | Fel svar</b><br>
+        Minst ett fel svar behövs. Perfekt för frågor om ert kompisgäng!</p>
+      <textarea id="customText" spellcheck="false" placeholder="Vem i gänget är bäst på Fortnite? | Kalle | Lisa | Omar | Elin
+Vad åt vi på klassresan? | Pizza | Tacos | Sushi | Hamburgare"></textarea>
+      <p class="hint" id="customInfo"></p>
+      <div class="row">
+        <button class="ghost" id="btnEditBack">Avbryt</button>
+        <button class="primary" id="btnEditSave" style="flex:1">Spara frågorna</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Lobby -->
+  <section class="screen" id="lobby">
+    <div class="wrap">
+      <h2 id="lobbyTitle">Lobby</h2>
+      <div class="card" id="addrCard">
+        <p class="section-title" style="text-align:center" id="addrTitle">Kompisarna skriver in den här adressen och klickar "Gå med"</p>
+        <div class="addr" id="addrText"></div>
+      </div>
+      <div class="card">
+        <p class="section-title" id="playerCount">Spelare</p>
+        <div class="players" id="lobbyPlayers"></div>
+      </div>
+      <div class="card" id="setup">
+        <p class="section-title">Välj spel</p>
+        <div class="games" id="games"></div>
+        <div id="catBox">
+          <p class="section-title" style="margin-top:16px">Kategori</p>
+          <div class="cats" id="cats"></div>
+        </div>
+        <p class="section-title" style="margin-top:16px">Antal rundor</p>
+        <div class="counts" id="counts"></div>
+      </div>
+      <p class="hint" id="lobbyInfo"></p>
+      <div class="row">
+        <button class="ghost" id="btnLeave">← Lämna</button>
+        <button class="primary" id="btnStart" style="flex:1">Starta (Enter)</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Fråga / svar -->
+  <section class="screen" id="question">
+    <div class="wrap">
+      <div class="topbar"><span id="qNum"></span><span id="qCat"></span><span id="qTime"></span></div>
+      <div class="timer" id="timer"><div id="timerFill"></div></div>
+      <div id="stage"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="status" id="qStatus"></div>
+      <div class="board" id="revealBoard"></div>
+      <div class="row" id="nextRow">
+        <button class="primary" id="btnNext" style="flex:1">Nästa runda (Enter)</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Slutresultat -->
+  <section class="screen" id="final">
+    <div class="wrap">
+      <h2>🏆 Resultat</h2>
+      <div class="podium" id="podium"></div>
+      <div class="board" id="finalBoard"></div>
+      <div class="row">
+        <button class="ghost" id="btnFinalMenu">Till menyn</button>
+        <button class="primary" id="btnAgain" style="flex:1">Spela igen (Enter)</button>
+      </div>
+      <p class="hint" id="finalInfo"></p>
+    </div>
+  </section>
+
+  <!-- Ansluter / fel -->
+  <section class="screen" id="error">
+    <div class="wrap narrow" style="margin-top:20vh">
+      <div class="card">
+        <p class="err" id="errTitle">Hoppsan!</p>
+        <p id="errText"></p>
+        <button class="primary" id="btnErrBack">Tillbaka till menyn</button>
+      </div>
+    </div>
+  </section>
+
+  <button class="ghost" id="mute">🔊</button>
+
+  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+  <script src="net.js"></script>
+  <script src="questions.js"></script>
+  <script src="games-data.js"></script>
+  <script src="quiz.js"></script>
+  <a href="../" title="Alla spel" style="position:fixed;left:10px;bottom:8px;z-index:50;color:#9a93cc;font:600 12px Segoe UI,system-ui,sans-serif;text-decoration:none;opacity:.7">← Alla spel</a>
+</body>
+</html>

@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="sv">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Neon Rymdskytt</title>
+  <style>
+    html, body {
+      margin: 0;
+      height: 100%;
+      background: #05060f;
+      overflow: hidden;
+      font-family: "Segoe UI", system-ui, sans-serif;
+      color: #e8ecff;
+      user-select: none;
+    }
+    canvas { display: block; width: 100vw; height: 100vh; }
+
+    #menu {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      padding: 16px;
+    }
+    #menu.hidden { display: none; }
+    #menu h1 {
+      margin: 0 0 18px;
+      font-size: clamp(32px, 7vw, 64px);
+      color: #5ef1ff;
+      text-shadow: 0 0 24px #5ef1ff;
+      letter-spacing: 2px;
+      text-align: center;
+    }
+    .panel {
+      width: min(420px, 100%);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    label { font-size: 14px; color: #aab3dd; display: flex; flex-direction: column; gap: 6px; }
+    input {
+      font: inherit;
+      font-size: 16px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 1px solid #2c3566;
+      background: #0b0f24;
+      color: #e8ecff;
+      outline: none;
+      min-width: 0;
+    }
+    input:focus { border-color: #5ef1ff; box-shadow: 0 0 10px #5ef1ff55; }
+    button {
+      font: inherit;
+      font-size: 16px;
+      font-weight: 700;
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid currentColor;
+      background: transparent;
+      cursor: pointer;
+      transition: background 0.15s, box-shadow 0.15s;
+    }
+    button:hover { box-shadow: 0 0 14px currentColor; background: #ffffff0d; }
+    #solo { color: #5ef1ff; }
+    #host { color: #7cff6b; }
+    #join { color: #ffe066; }
+    .row { display: flex; gap: 8px; }
+    .row input { flex: 1; }
+    .sep { text-align: center; color: #5a6390; font-size: 13px; margin-top: 6px; }
+    .help { color: #7b86b8; font-size: 13px; text-align: center; margin: 8px 0 0; }
+    #record { color: #ff5ea8; font-size: 15px; margin: 0; min-height: 1em; }
+  </style>
+</head>
+<body>
+  <canvas id="game"></canvas>
+
+  <div id="menu">
+    <h1>NEON RYMDSKYTT</h1>
+    <div class="panel">
+      <label>Ditt namn
+        <input id="name" maxlength="12" placeholder="Pilot">
+      </label>
+      <button id="solo">Spela ensam</button>
+      <button id="host">Skapa spel för kompisar</button>
+      <div class="sep">— eller gå med i en kompis spel —</div>
+      <div class="row">
+        <input id="addr" placeholder="Värdens IP, t.ex. 192.168.1.23">
+        <button id="join">Gå med</button>
+      </div>
+      <p class="help">Piltangenter / WASD – flyg · Mellanslag – skjut · M – ljud av/på</p>
+      <p class="help" id="record"></p>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+  <script src="net.js"></script>
+  <script src="game.js"></script>
+  <a href="../" title="Alla spel" style="position:fixed;left:10px;bottom:8px;z-index:50;color:#9a93cc;font:600 12px Segoe UI,system-ui,sans-serif;text-decoration:none;opacity:.7">← Alla spel</a>
+</body>
+</html>

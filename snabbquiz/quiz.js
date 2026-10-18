@@ -254,7 +254,7 @@
   // Som webbsida används rumskoder i stället för IP-adresser
   const ONLINE = !!(window.GameNet && window.GameNet.online);
   if (ONLINE) {
-    addrInput.placeholder = 'Rumskod, t.ex. KATT';
+    addrInput.placeholder = 'Rumskod, t.ex. MZRB';
     addrInput.maxLength = 4;
     addrInput.style.textTransform = 'uppercase';
     addrInput.value = '';

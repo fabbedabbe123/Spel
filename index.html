@@ -4,6 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Spel med kompisar</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <meta name="theme-color" content="#0f0c26">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=Figtree:wght@400;600;700&display=swap" rel="stylesheet">
@@ -111,8 +113,8 @@
         <p class="sub">Spela direkt i webbläsaren – inget att installera.</p>
       </div>
       <div class="room">
-        <ol class="tiles" aria-label="Exempel på rumskod: KATT">
-          <li>K</li><li>A</li><li>T</li><li>T</li>
+        <ol class="tiles" aria-label="Exempel på rumskod: MZRB">
+          <li>M</li><li>Z</li><li>R</li><li>B</li>
         </ol>
         <p>Fyra bokstäver är allt kompisarna behöver för att hoppa in.</p>
       </div>
@@ -200,12 +202,24 @@
         <h2>Så spelar ni tillsammans</h2>
         <ol class="steps">
           <li>En av er väljer ett spel och klickar <b>Skapa spel för kompisar</b>.</li>
-          <li>Då visas en <b>rumskod</b> med fyra bokstäver, till exempel <b>KATT</b>.</li>
+          <li>Då visas en <b>rumskod</b> med fyra bokstäver, till exempel <b data-code>MZRB</b>.</li>
           <li>De andra öppnar samma spel, skriver in koden och klickar <b>Gå med</b>.</li>
           <li>Den som skapade spelet måste ha fliken öppen så länge ni spelar.</li>
         </ol>
       </section>
     </main>
   </div>
+  <script>
+    // Slumpar ett exempel på rumskod (samma bokstäver som spelen använder)
+    (function () {
+      var L = 'ABCDEFGHJKLMNPQRSTUVWXYZ', code = '';
+      for (var i = 0; i < 4; i++) code += L.charAt(Math.floor(Math.random() * L.length));
+      var tiles = document.querySelectorAll('.tiles li');
+      for (var j = 0; j < tiles.length; j++) tiles[j].textContent = code.charAt(j);
+      var marks = document.querySelectorAll('[data-code]');
+      for (var k = 0; k < marks.length; k++) marks[k].textContent = code;
+      document.querySelector('.tiles').setAttribute('aria-label', 'Exempel på rumskod: ' + code);
+    })();
+  </script>
 </body>
 </html>

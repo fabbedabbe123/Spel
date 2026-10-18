@@ -4,6 +4,11 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Grottkrigarna</title>
+  <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+  <meta name="theme-color" content="#0f0c26">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,800&family=Figtree:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
       --bg: #07060f;
@@ -72,6 +77,24 @@
     .help { color: var(--muted); font-size: 13px; text-align: center; line-height: 1.6; }
     kbd { background: #0d0b1c; border: 1px solid var(--line); border-radius: 5px; padding: 1px 6px; font-family: inherit; color: var(--text); }
     .err { color: #ff5d73; font-size: 22px; font-weight: 800; text-align: center; }
+
+    /* ---- Menydesign (påverkar bara startmenyn) ---- */
+    #menu { font-family: "Figtree", "Segoe UI", system-ui, sans-serif; gap: 10px; justify-content: flex-start; padding-bottom: 44px; }
+    #menu > :first-child { margin-top: auto; }
+    #menu > :last-child { margin-bottom: auto; }
+    #menu h1 {
+      font-family: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif; font-weight: 800;
+      letter-spacing: -.025em; line-height: .95; font-size: clamp(44px, 9vw, 92px);
+    }
+    #menu .sub { font-size: 18px; margin: 0 0 8px; }
+    #menu .panel {
+      padding: 22px; border-radius: 24px; background: #100d24dd;
+      border: 2px solid var(--line); box-shadow: 0 24px 70px -24px #000, 0 0 50px -28px #ff8a3f;
+    }
+    #menu input { border-radius: 12px; }
+    #menu button { border-radius: 12px; }
+    #menu .cls { border-radius: 16px; }
+    #menu .title { text-transform: none; letter-spacing: 0; font-size: 15px; font-weight: 700; }
   </style>
 </head>
 <body>

@@ -4,6 +4,11 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Neon Rymdskytt</title>
+  <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+  <meta name="theme-color" content="#0f0c26">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,800&family=Figtree:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
     html, body {
       margin: 0;
@@ -74,6 +79,28 @@
     .sep { text-align: center; color: #5a6390; font-size: 13px; margin-top: 6px; }
     .help { color: #7b86b8; font-size: 13px; text-align: center; margin: 8px 0 0; }
     #record { color: #ff5ea8; font-size: 15px; margin: 0; min-height: 1em; }
+
+    /* ---- Menydesign (påverkar bara startmenyn) ---- */
+    #menu { font-family: "Figtree", "Segoe UI", system-ui, sans-serif; }
+    #menu h1 {
+      font-family: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif; font-weight: 800;
+      letter-spacing: -.02em; line-height: .95; margin: 0 0 8px;
+      font-size: clamp(40px, 9vw, 84px);
+      text-shadow: 0 0 28px #5ef1ff99, 0 0 2px #5ef1ff;
+    }
+    #menu .panel {
+      box-sizing: border-box; width: min(440px, 100%); padding: 22px; gap: 12px;
+      background: #070a1ccc; border: 1px solid #2c3566; border-radius: 22px;
+      box-shadow: 0 20px 60px -20px #000, 0 0 40px -20px #5ef1ff;
+      backdrop-filter: blur(6px);
+    }
+    #menu label { font-weight: 600; }
+    #menu input { border-radius: 12px; border-width: 2px; padding: 11px 13px; }
+    #menu button { border-radius: 12px; border-width: 2px; padding: 13px; }
+    #menu #solo { background: #5ef1ff; color: #04202a; border-color: #5ef1ff; }
+    #menu #solo:hover { background: #8ff6ff; box-shadow: 0 0 22px #5ef1ff88; }
+    #menu .sep { margin-top: 4px; }
+    #menu .help { line-height: 1.6; }
   </style>
 </head>
 <body>

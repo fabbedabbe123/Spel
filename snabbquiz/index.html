@@ -4,6 +4,11 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Snabbquiz</title>
+  <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+  <meta name="theme-color" content="#0f0c26">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,800&family=Figtree:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
       --bg: #12102a;
@@ -279,6 +284,20 @@
     #error .card { text-align: center; }
     .err { color: var(--bad); font-size: 22px; font-weight: 800; }
     #mute { position: fixed; bottom: 10px; right: 12px; z-index: 5; }
+
+    /* ---- Menydesign (påverkar bara startmenyn) ---- */
+    #menu { font-family: "Figtree", "Segoe UI", system-ui, sans-serif; justify-content: center; }
+    #menu h1.logo {
+      font-family: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif; font-weight: 800;
+      letter-spacing: -.035em; margin: 0 0 10px; font-size: clamp(54px, 12vw, 112px);
+    }
+    #menu .subtitle { margin: 0 0 24px; font-size: 19px; }
+    #menu .wrap.narrow {
+      padding: 24px; border-radius: 26px; background: var(--bg2); border: 2px solid var(--line);
+      box-shadow: 0 24px 60px -28px #000, 0 0 50px -30px var(--accent);
+    }
+    #menu input { border-radius: 14px; }
+    #menu button { border-radius: 14px; }
   </style>
 </head>
 <body>

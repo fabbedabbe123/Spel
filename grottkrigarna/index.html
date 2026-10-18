@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="sv">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Grottkrigarna</title>
+  <style>
+    :root {
+      --bg: #07060f;
+      --card: #16132c;
+      --line: #2f2860;
+      --text: #ece8ff;
+      --muted: #9a93cc;
+      --accent: #ffcf3f;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; height: 100%; background: var(--bg); overflow: hidden; }
+    body { color: var(--text); font-family: "Segoe UI", system-ui, sans-serif; user-select: none; }
+    canvas { display: block; width: 100vw; height: 100vh; cursor: crosshair; }
+
+    .overlay {
+      position: fixed; inset: 0;
+      display: none; flex-direction: column; align-items: center; justify-content: center;
+      gap: 14px; padding: 16px; overflow-y: auto;
+      background: radial-gradient(ellipse at center, #1a1440ee, #07060ff5 70%);
+    }
+    .overlay.active { display: flex; }
+    h1 {
+      margin: 0; font-size: clamp(40px, 7vw, 76px); letter-spacing: 2px; text-align: center;
+      color: var(--accent); text-shadow: 0 0 28px #ff8a3f99, 0 4px 0 #6b3a00;
+    }
+    .sub { color: var(--muted); margin: -6px 0 10px; text-align: center; }
+    .panel { width: min(720px, 100%); display: flex; flex-direction: column; gap: 12px; }
+    label { font-size: 14px; color: var(--muted); display: flex; flex-direction: column; gap: 6px; }
+    input {
+      font: inherit; font-size: 16px; padding: 11px 13px; border-radius: 10px;
+      border: 2px solid var(--line); background: #0d0b1c; color: var(--text); outline: none; min-width: 0;
+      user-select: text;
+    }
+    input:focus { border-color: var(--accent); }
+    button {
+      font: inherit; font-weight: 700; font-size: 16px; padding: 13px 16px; border-radius: 10px;
+      border: none; cursor: pointer; color: #fff; background: var(--card); box-shadow: 0 4px 0 #0008;
+    }
+    button:hover { filter: brightness(1.15); }
+    button:active { transform: translateY(2px); box-shadow: 0 2px 0 #0008; }
+    button:disabled { opacity: 0.45; cursor: default; filter: none; }
+    .primary { background: var(--accent); color: #2a1a00; }
+    .green { background: #1f9d55; }
+    .blue { background: #3a5bd9; }
+    .ghost { background: transparent; box-shadow: none; color: var(--muted); }
+    .row { display: flex; gap: 10px; }
+    .row > input { flex: 1; }
+    .sep { text-align: center; color: var(--muted); font-size: 13px; }
+    .classes { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+    @media (max-width: 640px) { .classes { grid-template-columns: repeat(2, 1fr); } }
+    .cls {
+      background: var(--card); border: 3px solid var(--line); box-shadow: none;
+      display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 14px 8px; text-align: center;
+    }
+    .cls .icon { font-size: 34px; }
+    .cls .cname { font-size: 17px; color: var(--c); }
+    .cls .cdesc { font-size: 12px; color: var(--muted); font-weight: 600; line-height: 1.35; }
+    .cls .cstat { font-size: 12px; color: var(--text); opacity: 0.8; }
+    .cls.on { border-color: var(--c); box-shadow: 0 0 18px -4px var(--c); }
+    .card { background: var(--card); border-radius: 14px; padding: 16px; }
+    .title { font-size: 12px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); margin: 0 0 8px; }
+    .addr { font-size: 28px; font-weight: 800; color: var(--accent); text-align: center; }
+    .players { display: flex; flex-direction: column; gap: 6px; }
+    .pl { display: flex; align-items: center; gap: 10px; background: #0d0b1c; border-radius: 10px; padding: 10px 12px; border-left: 5px solid var(--c); font-weight: 700; }
+    .pl .pc { margin-left: auto; color: var(--c); }
+    .help { color: var(--muted); font-size: 13px; text-align: center; line-height: 1.6; }
+    kbd { background: #0d0b1c; border: 1px solid var(--line); border-radius: 5px; padding: 1px 6px; font-family: inherit; color: var(--text); }
+    .err { color: #ff5d73; font-size: 22px; font-weight: 800; text-align: center; }
+  </style>
+</head>
+<body>
+  <canvas id="game"></canvas>
+
+  <!-- Meny -->
+  <div class="overlay active" id="menu">
+    <h1>GROTTKRIGARNA</h1>
+    <p class="sub">Ta er ner genom nio våningar av grottor – tillsammans.</p>
+    <div class="panel">
+      <label>Ditt namn <input id="name" maxlength="12" placeholder="Skriv ditt namn"></label>
+      <div class="title">Välj klass</div>
+      <div class="classes" id="classes"></div>
+      <button class="primary" id="btnHost">Skapa spel för kompisar</button>
+      <button class="blue" id="btnSolo">Spela ensam</button>
+      <div class="sep">— eller gå med i en kompis spel —</div>
+      <div class="row">
+        <input id="addr" placeholder="Värdens IP, t.ex. 192.168.1.23">
+        <button class="green" id="btnJoin">Gå med</button>
+      </div>
+      <p class="help">
+        <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> gå · <b>Vänsterklick</b> attack · <b>Högerklick</b> / <kbd>Mellanslag</kbd> specialattack ·
+        <kbd>E</kbd> drick dryck · <kbd>M</kbd> ljud av/på · <kbd>F11</kbd> helskärm
+      </p>
+    </div>
+  </div>
+
+  <!-- Lobby -->
+  <div class="overlay" id="lobby">
+    <h1 style="font-size:48px">LOBBY</h1>
+    <div class="panel">
+      <div class="card" id="addrCard">
+        <p class="title" style="text-align:center" id="addrTitle">Kompisarna skriver in den här adressen och klickar "Gå med"</p>
+        <div class="addr" id="addrText"></div>
+      </div>
+      <div class="card">
+        <p class="title" id="playerCount">Spelare</p>
+        <div class="players" id="lobbyPlayers"></div>
+      </div>
+      <div class="title">Byt klass</div>
+      <div class="classes" id="lobbyClasses"></div>
+      <p class="help" id="lobbyInfo"></p>
+      <div class="row">
+        <button class="ghost" id="btnLeave">← Lämna</button>
+        <button class="primary" id="btnStart" style="flex:1">Starta äventyret (Enter)</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Ansluter / fel -->
+  <div class="overlay" id="error">
+    <div class="panel" style="max-width:440px">
+      <div class="card" style="text-align:center">
+        <p class="err" id="errTitle">Hoppsan!</p>
+        <p id="errText"></p>
+        <button class="primary" id="btnErrBack">Tillbaka till menyn</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+  <script src="net.js"></script>
+  <script src="game.js"></script>
+  <a href="../" title="Alla spel" style="position:fixed;left:10px;bottom:8px;z-index:50;color:#9a93cc;font:600 12px Segoe UI,system-ui,sans-serif;text-decoration:none;opacity:.7">← Alla spel</a>
+</body>
+</html>

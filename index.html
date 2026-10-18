@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="sv">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Spel med kompisar</title>
+  <style>
+    :root { --bg: #0b0920; --card: #18143a; --line: #2f2860; --text: #f1eeff; --muted: #a39cd6; }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; min-height: 100vh; color: var(--text);
+      font-family: "Segoe UI", system-ui, sans-serif;
+      background: radial-gradient(ellipse at top, #241c5c, var(--bg) 65%) fixed;
+      display: flex; flex-direction: column; align-items: center; padding: 48px 16px;
+    }
+    h1 { font-size: clamp(36px, 7vw, 64px); margin: 0 0 8px; text-align: center; }
+    .sub { color: var(--muted); margin: 0 0 36px; text-align: center; font-size: 18px; }
+    .games { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 18px; width: min(980px, 100%); }
+    a.game {
+      display: flex; flex-direction: column; gap: 10px; text-decoration: none; color: var(--text);
+      background: var(--card); border: 2px solid var(--line); border-radius: 20px; padding: 26px;
+      transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
+    }
+    a.game:hover { transform: translateY(-4px); border-color: var(--c); box-shadow: 0 10px 30px -10px var(--c); }
+    .icon { font-size: 52px; }
+    .name { font-size: 26px; font-weight: 800; color: var(--c); }
+    .desc { color: var(--muted); line-height: 1.5; }
+    .tag { font-size: 13px; font-weight: 700; color: var(--text); opacity: 0.8; }
+    .how { width: min(980px, 100%); margin-top: 36px; background: var(--card); border-radius: 20px; padding: 22px 26px; line-height: 1.7; }
+    .how h2 { margin: 0 0 6px; font-size: 20px; }
+    .how ol { margin: 0; padding-left: 22px; color: var(--muted); }
+    .how b { color: var(--text); }
+  </style>
+</head>
+<body>
+  <h1>🎮 Spel med kompisar</h1>
+  <p class="sub">Spela direkt i webbläsaren – inget att installera.</p>
+  <div class="games">
+    <a class="game" href="snabbquiz/" style="--c:#ffcf3f">
+      <span class="icon">❓</span>
+      <span class="name">Snabbquiz</span>
+      <span class="desc">Frågesport, Wordle, flaggor, kryptoord, Size it up och massor av minispel.</span>
+      <span class="tag">👥 1–8 spelare</span>
+    </a>
+    <a class="game" href="rymdskytt/" style="--c:#5ef1ff">
+      <span class="icon">🚀</span>
+      <span class="name">Neon Rymdskytt</span>
+      <span class="desc">Skjut asteroider och bossar tillsammans i ett neonarkadspel.</span>
+      <span class="tag">👥 1–4 spelare</span>
+    </a>
+    <a class="game" href="grottkrigarna/" style="--c:#ff8a5e">
+      <span class="icon">⚔️</span>
+      <span class="name">Grottkrigarna</span>
+      <span class="desc">Ta er ner genom nio våningar grottor med monster, skatter och bossar.</span>
+      <span class="tag">👥 1–4 spelare</span>
+    </a>
+  </div>
+  <div class="how">
+    <h2>Så spelar ni tillsammans</h2>
+    <ol>
+      <li>En av er väljer ett spel och klickar <b>Skapa spel för kompisar</b>.</li>
+      <li>Då visas en <b>rumskod</b> med fyra bokstäver, till exempel <b>KATT</b>.</li>
+      <li>De andra öppnar samma spel, skriver in koden och klickar <b>Gå med</b>.</li>
+      <li>Den som skapade spelet måste ha fliken öppen så länge ni spelar.</li>
+    </ol>
+  </div>
+</body>
+</html>

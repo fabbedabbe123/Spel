@@ -62,6 +62,13 @@
     if (ticker) { ticker.terminate(); ticker = null; }
   }
 
+  // Spelen har en egen tidsgräns på 12 s med ett allmänt meddelande. Våra tidsgränser går ut före den,
+  // så att man får veta VAR det stoppar: servern som delar ut rumskoder, eller direktkontakten mellan datorerna.
+  const STAGE_TIMEOUT = 9000;
+  const MSG_SERVER = 'Kunde inte nå anslutningsservern. Nätverket (t.ex. skolans wifi) kan blockera den. Prova mobilens hotspot eller mobildata.';
+  const MSG_DIRECT = 'Hittade rummet men kunde inte koppla ihop er. Nätverket (t.ex. skolans wifi) blockerar troligen direktkontakt. Prova mobilens hotspot eller mobildata.';
+  const SERVER_ERRORS = ['network', 'server-error', 'socket-error', 'socket-closed', 'ssl-unavailable'];
+
   function fakeSocket() {
     return { readyState: 0, onopen: null, onmessage: null, onclose: null };
   }
@@ -79,6 +86,9 @@
     let reconnectTimer = null;
     hosting++;
     startTicker();
+    const openTimer = setTimeout(() => {
+      if (!opened && !closed) deliver(sock, { t: 'error', msg: MSG_SERVER });
+    }, STAGE_TIMEOUT);
 
     // Tappar värden kontakten med PeerJS-servern kan ingen ny kompis gå med.
     // Då kopplar vi upp oss igen i bakgrunden med samma rumskod; kompisar som redan är med påverkas inte.
@@ -99,6 +109,7 @@
         if (peer !== p) return;
         if (opened) return; // kom tillbaka efter en återanslutning: spelet behöver inte veta
         opened = true;
+        clearTimeout(openTimer);
         sock.readyState = 1;
         sock.onopen && sock.onopen();
       });
@@ -107,7 +118,7 @@
         // Koden var upptagen: prova en ny
         if (!opened && err.type === 'unavailable-id' && attempt < 8) { p.destroy(); open(attempt + 1); return; }
         if (opened && ['network', 'server-error', 'socket-error', 'socket-closed', 'disconnected', 'unavailable-id'].includes(err.type)) return;
-        deliver(sock, { t: 'error', msg: 'Kunde inte skapa ett rum. Kolla att du har internet och försök igen.' });
+        deliver(sock, { t: 'error', msg: SERVER_ERRORS.includes(err.type) ? MSG_SERVER : 'Kunde inte skapa ett rum. Försök igen.' });
       });
       p.on('connection', conn => {
         conn.on('data', raw => {
@@ -148,6 +159,7 @@
     sock.close = () => {
       if (closed) return;
       closed = true;
+      clearTimeout(openTimer);
       clearTimeout(reconnectTimer);
       if (--hosting <= 0) { hosting = 0; stopTicker(); }
       sock.readyState = 3;
@@ -164,16 +176,25 @@
     const code = cleanCode(rawCode);
     let conn = null;
     let done = false;
+    let signalOpen = false;
     const peer = newPeer();
+    const stageTimer = setTimeout(() => {
+      if (done || sock.readyState === 1) return;
+      done = true;
+      deliver(sock, { t: 'error', msg: signalOpen ? MSG_DIRECT : MSG_SERVER });
+    }, STAGE_TIMEOUT);
     const lost = () => {
+      clearTimeout(stageTimer);
       if (done) return;
       done = true;
       sock.readyState = 3;
       sock.onclose && sock.onclose();
     };
     peer.on('open', () => {
+      signalOpen = true;
       conn = peer.connect(`${game}-${code}`.toLowerCase(), { reliable: true });
       conn.on('open', () => {
+        clearTimeout(stageTimer);
         sock.readyState = 1;
         sock.onopen && sock.onopen();
       });
@@ -184,18 +205,19 @@
       conn.on('iceStateChanged', st => {
         if (st === 'failed' && sock.readyState !== 1 && !done) {
           done = true;
-          deliver(sock, { t: 'error', msg: 'Kunde inte koppla ihop er. Nätverket (t.ex. skolans eller jobbets wifi) kan blockera det. Prova samma wifi som värden eller en annan uppkoppling.' });
+          clearTimeout(stageTimer);
+          deliver(sock, { t: 'error', msg: MSG_DIRECT });
         }
       });
     });
     peer.on('error', err => {
       if (done) return;
-      if (err.type === 'peer-unavailable') deliver(sock, { t: 'error', msg: `Hittade inget spel med rumskoden ${code}. Kolla koden och att värden har skapat ett spel.` });
-      else if (sock.readyState !== 1) deliver(sock, { t: 'error', msg: 'Kunde inte ansluta. Kolla att du har internet och försök igen.' });
+      if (err.type === 'peer-unavailable') { clearTimeout(stageTimer); deliver(sock, { t: 'error', msg: `Hittade inget spel med rumskoden ${code}. Kolla koden och att värden har skapat ett spel.` }); }
+      else if (sock.readyState !== 1) { clearTimeout(stageTimer); deliver(sock, { t: 'error', msg: SERVER_ERRORS.includes(err.type) ? MSG_SERVER : 'Kunde inte ansluta. Försök igen.' }); }
       else lost();
     });
     sock.send = data => { if (conn && conn.open) { try { conn.send(data); } catch {} } };
-    sock.close = () => { done = true; sock.readyState = 3; setTimeout(() => peer.destroy(), 100); };
+    sock.close = () => { done = true; clearTimeout(stageTimer); sock.readyState = 3; setTimeout(() => peer.destroy(), 100); };
     return sock;
   }
 
